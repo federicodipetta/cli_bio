@@ -2,11 +2,6 @@ use std::{error::Error, fs, path::{Path, PathBuf}};
 
 use pdbtbx::PDBError;
 
-pub enum PdbManagerError {
-    BreakingError(PDBError),
-    ParsingErrors()
-}
-
 pub struct PdbManager {
     root: PathBuf,
 }
