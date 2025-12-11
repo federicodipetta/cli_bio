@@ -1,7 +1,5 @@
 use std::{error::Error, fs, path::{Path, PathBuf}};
 
-use pdbtbx::PDBError;
-
 pub struct PdbManager {
     root: PathBuf,
 }
