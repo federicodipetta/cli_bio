@@ -1,2 +1,5 @@
 /target
 PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
+/downloads
+*.log
+*.tmp
