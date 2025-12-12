@@ -1,4 +1,4 @@
-
+#[derive(Debug, PartialEq)]
 pub struct SecondaryStructure {
     ///Name of the structure
     pub name: String,
@@ -10,7 +10,7 @@ pub struct SecondaryStructure {
     pub seq: Vec<char>,
 }
 
-
+#[derive(Debug, PartialEq)]
 pub struct Bond {
     // start of the bond
     pub start: u16,
@@ -18,6 +18,16 @@ pub struct Bond {
     pub end: u16,
     // if it cross with other bonds (is optional because can only be postcomputed)
     pub cross: Option<bool>
+}
+
+impl Bond {
+    pub fn new(start: u16, end: u16) -> Self {
+        Bond {
+            start,
+            end,
+            cross: None
+        }
+    }
 }
 
 

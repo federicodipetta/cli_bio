@@ -132,6 +132,7 @@ dependencies = [
  "env_logger",
  "log",
  "pdbtbx",
+ "regex",
  "reqwest",
  "tokio",
 ]
