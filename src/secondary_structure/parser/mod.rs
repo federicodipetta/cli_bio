@@ -1,6 +1,5 @@
 use std::{collections::VecDeque, fs, io::Error};
 
-use env_logger::Env;
 use regex::Regex;
 
 use crate::secondary_structure::{SecondaryStructureBuilder, secondary_structure::Bond};

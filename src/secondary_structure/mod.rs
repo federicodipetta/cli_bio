@@ -3,7 +3,7 @@ use std::collections::{BTreeSet, LinkedList};
 use crate::secondary_structure::secondary_structure::{Bond, SecondaryStructure};
 
 
-
+pub mod comparers;
 pub mod parser;
 pub mod secondary_structure;
 
