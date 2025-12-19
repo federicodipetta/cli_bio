@@ -6,8 +6,14 @@ pub struct SecondaryStructureLenComparare {
 
 }
 
+impl SecondaryStructureLenComparare {
+    pub fn new() -> Self {
+        SecondaryStructureLenComparare {  }
+    }
+}
+
 impl SecondaryStructureComparer for SecondaryStructureLenComparare {
-    fn comapre_defualt(s1: SecondaryStructure, s2: SecondaryStructure) -> i32 {
+    fn comapre_defualt(s1: &SecondaryStructure, s2: &SecondaryStructure) -> i32 {
         i32::abs((s1.seq.len() - s2.seq.len()) as i32)
     }
 }
