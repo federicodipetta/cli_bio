@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fs, io::Error};
+use std::{collections::VecDeque, fs::{self}, io::Error, path::Path};
 
 use regex::Regex;
 
@@ -7,12 +7,17 @@ use crate::secondary_structure::{SecondaryStructureBuilder, secondary_structure:
 use super::secondary_structure::SecondaryStructure;
 
 pub fn parse(path: &str) -> Result<SecondaryStructure, Error> {
-    todo!("{path}")
-}
-
-pub fn parse_aas(path: &str) -> Result<SecondaryStructure, Error> {
-    let text = fs::read_to_string(path)?;
-    parse_aas_text(path, text)
+    let extension = path.split(".").last()
+        .unwrap_or("");
+    let text= fs::read_to_string(path)?;
+    let name = Path::new(&path).file_name().unwrap().to_str().unwrap();
+    match extension.to_lowercase().as_str() {
+        "db" => parse_db_text(name, text),
+        "aas" => parse_aas_text(name, text),
+        "ct" => parse_ct_text(name, text),
+        "bpseq" => parse_bpseq_text(name, text),
+        _ => Err(Error::new(std::io::ErrorKind::InvalidInput, format!("Invalid extension: {extension}")))
+    }
 }
 
 pub fn parse_aas_text(name: &str, text: String) -> Result<SecondaryStructure, Error> {
@@ -148,6 +153,16 @@ const SEPARATOR_END: &'static [char] = & [
     '>',
 ];
 
+fn get_closing_char(c: &char) -> char {
+    match c {
+        '(' => ')',
+        '[' => ']',
+        '{' => '}',
+        '<' => '>',
+        _ => panic!("Cannot find closing char {c}")
+    }
+}
+
 pub fn parse_db_text(name: &str, text: String) -> Result<SecondaryStructure, Error>{
     let description = try_extract_description(&text);
     let text = clean_text(text);
@@ -179,14 +194,14 @@ pub fn parse_db_text(name: &str, text: String) -> Result<SecondaryStructure, Err
             stack.push_front((char, cont));
             cont += 1;
         } else if SEPARATOR_END.contains(&char) {
-            let char_start = stack.pop_front().ok_or_else(
+            let char_start = stack.pop_back().ok_or_else(
                 || Error::new(std::io::ErrorKind::InvalidInput, format!("found a closing('{char}') but no opening char found"))
             )?;
-
-            if SEPRATORS_START.binary_search(&char_start.0).unwrap() == SEPARATOR_END.binary_search(&char).unwrap() {
+            
+            if char == get_closing_char(&char_start.0) {
                 builder = builder.add_bond(Bond::new(char_start.1, cont))
             } else {
-                return Err(Error::new(std::io::ErrorKind::InvalidInput, format!("Mismatch at {},{}. Closing char not corresponding with the opening one", char_start.0, cont)));
+                return Err(Error::new(std::io::ErrorKind::InvalidInput, format!("Mismatch at '{}','{}' with '{}','{}'. Closing char not corresponding with the opening one", char, cont, char_start.0, char_start.1)));
             }
             cont += 1;
         }

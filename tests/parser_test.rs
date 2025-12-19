@@ -288,8 +288,23 @@ fn parse_db() {
 
     let result = parser::parse_db_text("db_test", input.to_string());
 
-    assert!(!result.is_err(), "input should be parsed");
+    assert!(result.is_ok(), "input should be parsed {:?}", result.as_ref().err());
     let structure = result.unwrap();
     assert_eq!(structure.seq, Vec::from_iter("AUAUAU".chars()));
     assert_eq!(structure.bonds, [Bond::new(1, 2), Bond::new(4, 5)])
+}
+
+#[test]
+fn parse_db_pseudoknot() {
+    let input = r"
+    AUGCAUGCUU
+    ...([{)]}.
+   #1234567890 
+    ";
+    let result = parser::parse_db_text("db_test", input.to_string());
+
+    assert!(result.is_ok(), "input should be parsed {:?}", result.as_ref().err());
+    let structure = result.unwrap();
+    assert_eq!(structure.seq, Vec::from_iter("AUGCAUGCUU".chars()));
+    assert_eq!(structure.bonds, [Bond::new(3, 6), Bond::new(4, 7), Bond::new(5, 8)])
 }
