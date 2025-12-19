@@ -1,5 +1,3 @@
-use std::result;
-
 use cli_bio::secondary_structure::{parser, secondary_structure::Bond};
 
 #[test]

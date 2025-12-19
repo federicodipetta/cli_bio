@@ -1,7 +1,6 @@
 use std::{error::Error, path::Path};
 
 use clap::{Args, Parser, Subcommand};
-use env_logger::Env;
 
 #[derive(Parser)]
 struct Cli {
@@ -38,8 +37,6 @@ async fn main() -> Result<(), Box<dyn Error>>{
     env_logger::init();
     let args = Cli::parse();
     match args.cmd {
-        Command::CountAtoms(c) => {
-            c.run().await
-        }
+        Command::CountAtoms(c) => c.run().await
     }
 }

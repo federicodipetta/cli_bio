@@ -7,7 +7,7 @@ use crate::secondary_structure::{SecondaryStructureBuilder, secondary_structure:
 use super::secondary_structure::SecondaryStructure;
 
 pub fn parse(path: &str) -> Result<SecondaryStructure, Error> {
-    todo!()
+    todo!("{path}")
 }
 
 pub fn parse_aas(path: &str) -> Result<SecondaryStructure, Error> {
@@ -16,7 +16,7 @@ pub fn parse_aas(path: &str) -> Result<SecondaryStructure, Error> {
 }
 
 pub fn parse_aas_text(name: &str, text: String) -> Result<SecondaryStructure, Error> {
-    
+    let description = try_extract_description(&text);
     let text = clean_text(text);
     
     let format_re = Regex::new(r"^\s*([A-Za-z]+)").unwrap();
@@ -32,7 +32,10 @@ pub fn parse_aas_text(name: &str, text: String) -> Result<SecondaryStructure, Er
         .add_name(name.to_string())
         .add_sequence(sequence.to_string());
     
-  
+    if let Some(desc) = description {
+        builder = builder.add_description(desc);
+    }
+
     let bond_re = Regex::new(r"\(\s*([0-9]+)\s*,\s*([0-9]+)\s*\)").unwrap();
     
     for cap in bond_re.captures_iter(&text) {
@@ -45,6 +48,7 @@ pub fn parse_aas_text(name: &str, text: String) -> Result<SecondaryStructure, Er
 }
 
 pub fn parse_ct_text(name: &str, text: String) -> Result<SecondaryStructure, Error> {
+    let description = try_extract_description(&text);
     let text = clean_text(text);
     let mut lines = text.lines();
 
@@ -53,6 +57,10 @@ pub fn parse_ct_text(name: &str, text: String) -> Result<SecondaryStructure, Err
     
     let mut builder = SecondaryStructureBuilder::new(false).add_name(name.to_string());
 
+    if let Some(desc) = description {
+        builder = builder.add_description(desc);
+    }
+    
     let entries: Vec<_> = lines.collect();
 
     if entries.is_empty() {
@@ -85,9 +93,14 @@ pub fn parse_ct_text(name: &str, text: String) -> Result<SecondaryStructure, Err
 }
 
 pub fn parse_bpseq_text(name: &str, text: String) -> Result<SecondaryStructure, Error> {
+    let description = try_extract_description(&text);
     let text = clean_text(text);
     
     let mut builder = SecondaryStructureBuilder::new(false).add_name(name.to_string());
+    
+    if let Some(desc) = description {
+        builder = builder.add_description(desc);
+    }
     
     let entries: Vec<_> = text.lines().collect();
     
@@ -136,6 +149,7 @@ const SEPARATOR_END: &'static [char] = & [
 ];
 
 pub fn parse_db_text(name: &str, text: String) -> Result<SecondaryStructure, Error>{
+    let description = try_extract_description(&text);
     let text = clean_text(text);
 
     let format_re = Regex::new(r"^\s*([A-Za-z]+)").unwrap();
@@ -150,6 +164,10 @@ pub fn parse_db_text(name: &str, text: String) -> Result<SecondaryStructure, Err
     let mut builder = SecondaryStructureBuilder::new(false)
         .add_name(name.to_string())
         .add_sequence(sequence.to_string());
+
+    if let Some(desc) = description {
+        builder = builder.add_description(desc);
+    }
 
     let bond_part = format_re.replace(&text, "").to_string();
     let mut cont = 0;
@@ -183,4 +201,11 @@ fn clean_text(text: String) -> String {
         .filter(|l| !l.is_empty() && !l.trim().starts_with("#"))
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn try_extract_description(text: &String) -> Option<String> {
+    text.lines()
+        .filter(|l| l.starts_with("#"))
+        .map(|l| l.replacen("#", "", 1))
+        .reduce(|a, b| format!("{a}\n{b}"))
 }
