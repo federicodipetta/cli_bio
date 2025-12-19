@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, LinkedList};
+use std::collections::{LinkedList};
 
 use crate::secondary_structure::secondary_structure::{Bond, SecondaryStructure};
 
@@ -54,12 +54,16 @@ impl SecondaryStructureBuilder {
     }
 
     pub fn build(self) -> SecondaryStructure {
-        SecondaryStructure {
-            //TODO: handle the unwrap?
-            name: self.str_name.clone().unwrap(),
-            description: self.str_description,
-            bonds: self.str_bonds.into_iter().collect(),
-            seq: self.str_sequence.into_iter().collect(),
+        if !self.compute_cross {
+            SecondaryStructure {
+                //TODO: handle the unwrap?
+                name: self.str_name.clone().unwrap(),
+                description: self.str_description,
+                bonds: self.str_bonds.into_iter().collect(),
+                seq: self.str_sequence.into_iter().collect(),
+            }
+        } else {
+            todo!()
         }
     }
 
