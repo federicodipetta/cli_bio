@@ -55,7 +55,7 @@ impl FileFormat {
 
 /// This method handle the result from open() function 
 fn open_wrapper(path: &str) -> Result<pdbtbx::PDB, Box<dyn Error>> {
-    match pdbtbx::ReadOptions::new().set_level(pdbtbx::StrictnessLevel::Loose).set_discard_hydrogens(true).read(path) {
+    match pdbtbx::ReadOptions::new().set_level(pdbtbx::StrictnessLevel::Loose).read(path) {
         Ok((pdb, errors)) => {
             if !errors.is_empty() {
                 log::warn!("PDB parsing warnings (non-fatal): {} warnings found", errors.len());
