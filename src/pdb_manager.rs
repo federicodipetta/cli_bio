@@ -1,4 +1,6 @@
-use std::{error::Error, fs, path::{Path, PathBuf}};
+use std::{error::Error, fs::{self, File}, path::{Path, PathBuf}};
+
+use clap::ValueEnum;
 
 pub struct PdbManager {
     root: PathBuf,
@@ -15,14 +17,16 @@ impl PdbManager {
     }
 
 
-    pub async fn load(&self, id: &str) -> Result<pdbtbx::PDB, Box<dyn Error>> {
+    pub async fn load(&self, id: &str, format: &FileFormat) -> Result<pdbtbx::PDB, Box<dyn Error>> {
         let id = id.to_uppercase();
-        let file_path = self.root.join(format!("{}.pdb", id));
+        let format_str = format.to_format_str();
+        let file_path = self.root.join(format!("{id}.{format_str}"));
         
         if file_path.exists() {
             return open_wrapper(&file_path.to_str().unwrap());
         }
-        let url = format!("https://files.rcsb.org/download/{id}.pdb");
+
+        let url = format!("https://files.rcsb.org/download/{id}.{format_str}");
         let result = reqwest::get(url)
             .await?
             .text()
@@ -32,9 +36,26 @@ impl PdbManager {
     }
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum FileFormat {
+    /// PDB format
+    Pdb,
+    /// mmCIF format
+    Cif,
+}
+
+impl FileFormat {
+    fn to_format_str(&self) -> &str {
+        match self {
+            Self::Pdb => "pdb",
+            Self::Cif => "cif",
+        }
+    } 
+}
+
 /// This method handle the result from open() function 
 fn open_wrapper(path: &str) -> Result<pdbtbx::PDB, Box<dyn Error>> {
-    match pdbtbx::ReadOptions::new().set_level(pdbtbx::StrictnessLevel::Loose).read(path) {
+    match pdbtbx::ReadOptions::new().set_level(pdbtbx::StrictnessLevel::Loose).set_discard_hydrogens(true).read(path) {
         Ok((pdb, errors)) => {
             if !errors.is_empty() {
                 log::warn!("PDB parsing warnings (non-fatal): {} warnings found", errors.len());

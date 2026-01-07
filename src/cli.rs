@@ -1,7 +1,7 @@
 use std::{error::Error, path::{Path, PathBuf}};
 
 use clap::{Args, Parser, Subcommand};
-use cli_bio::secondary_structure::comparers::{SecondaryStructureComparer, bp_comparer::SecondaryStructureBpComparer, len_comparer::SecondaryStructureLenComparare};
+use cli_bio::{pdb_manager::FileFormat, secondary_structure::comparers::{SecondaryStructureComparer, bp_comparer::SecondaryStructureBpComparer, len_comparer::SecondaryStructureLenComparare}};
 
 
 
@@ -21,7 +21,16 @@ enum Command {
 
 #[derive(Args)]
 struct CountAtomsArgs {
-    pdb_id: String
+    /// One or more PDB IDs to download
+    pdb_ids: Vec<String>,
+    
+    /// Output directory for downloaded files
+    #[arg(short = 'o', long = "output-dir", default_value = "downloads")]
+    output_dir: PathBuf,
+
+    /// File format to download
+    #[arg(short = 'f', long = "format", default_value = "pdb")]
+    format: FileFormat,
 }
 
 #[derive(Args)]
@@ -160,10 +169,12 @@ fn load_structures_from_dir(path: &Path) -> Result<Vec<(String, cli_bio::seconda
 
 impl CountAtomsArgs {
     async fn run(&self) -> Result<(), Box<dyn Error>> {
-        log::info!("{}", self.pdb_id);
-        let manager = cli_bio::pdb_manager::PdbManager::new(Path::new("downloads"));
-        let pdb = manager.load("4plx").await.unwrap();
-        log::info!("Successfully loaded PDB with {} atoms", pdb.atom_count());
+        log::info!("{:?}", self.pdb_ids);
+        let manager = cli_bio::pdb_manager::PdbManager::new(self.output_dir.as_path());
+        for ele in &self.pdb_ids {
+            let pdb = manager.load(&ele.clone(), &self.format).await.unwrap();
+            log::info!("Successfully loaded PDB with {} atoms", pdb.atom_count());
+        }
         Ok(())
     } 
 }
